@@ -3,7 +3,7 @@
     "version": "1.1.1",
     "changelog": "Исправлено:\n- Аватарки не отображались после смены applicationId\n- Оценка «Н» (отсутствие) отображалась некорректно",
     "size_bytes": 63148130,
-    "sha256": "f337502a16d6d15a52bcb99e67d1c21dd8b237dcb5103590f7c9419ea3bc7569",
+    "sha256": "9418a489159aa4596094c57fd6eeafbe504542e44f2ea701a523895654a0ae58",
     "apk_name": "lyric-1.1.1-release.apk"
   },
   "beta": null,
