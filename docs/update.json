@@ -1,10 +1,10 @@
 {
   "release": {
-    "version": "1.1.4",
+    "version": "1.1.5",
     "changelog": "Исправления.\n\n- Оценка «Н» (отсутствие) теперь показывается корректно\n- Bugfix\n- Нормально собран release",
     "size_bytes": 63213758,
-    "sha256": "b5c2d6605561983a15938e9915d33f5adc85347d679ee2c42793b35f2494c468",
-    "apk_name": "lyric-1.1.4-release.apk"
+    "sha256": "5237c8af7d978cb2201e16f5f31bbd7287093cc7223fff58d61f1573e2c3a64d",
+    "apk_name": "lyric-1.1.5-release.apk"
   },
   "beta": null,
   "alpha": {
