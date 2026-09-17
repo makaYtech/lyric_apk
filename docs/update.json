@@ -7,5 +7,11 @@
     "apk_name": "lyric-1.1.1-release.apk"
   },
   "beta": null,
-  "alpha": null
+  "alpha": {
+    "version": "1.1.2",
+    "changelog": "Исправлено:\n- Оценка \"Н\" (отсутствие) теперь отображается корректно",
+    "size_bytes": 63213758,
+    "sha256": "000d8a88fe86413ab4f1501d6acda55bb7571a1bddf47a17f777a83025213bdd",
+    "apk_name": "lyric-1.1.2-alpha.apk"
+  }
 }
