@@ -6,7 +6,13 @@
     "sha256": "134f7b783bda63f63bdcdd83824c6050de3548ca0a26f11e1da471730fd0cb99",
     "apk_name": "lyric-1.1.6-release.apk"
   },
-  "beta": null,
+  "beta": {
+    "version": "1.1.7",
+    "changelog": "Изменения:\n\n- Новая система логина в ЭПОС\n- Новая внешность у меню настроек",
+    "size_bytes": 63296038,
+    "sha256": "40998b8788fcd4a6796a9ae4f2fcb9d4e5ad60f5196944405e47dd38b1eb0bfd",
+    "apk_name": "lyric-1.1.7-beta.apk"
+  },
   "alpha": {
     "version": "1.1.2",
     "changelog": "Исправлено:\n- Оценка \"Н\" (отсутствие) теперь отображается корректно",
