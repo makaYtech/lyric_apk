@@ -1,7 +1,7 @@
 {
-  "version": "1.2.1",
-  "download_url": "https://github.com/makaYtech/lyric_apk/releases/download/v1.2.1/lyric-1.2.1-linux.tar.gz",
-  "file_size": 11864934,
-  "sha256": "e195f28bf8d25965be6420cd5f7d5ea458798dbed4f9865578b8a1925b6064c8",
-  "release_notes": "Релиз v1.2.1"
+  "version": "1.2.2",
+  "download_url": "https://github.com/makaYtech/lyric_apk/releases/download/v1.2.2/lyric-1.2.2-linux.tar.gz",
+  "file_size": 11864963,
+  "sha256": "80fc43807323320ee94924e25129a0b3de821ab35c615afaf8ab10cfcfa7f835",
+  "release_notes": "Исправления и нововведения:\n- Добавлена поддержка Windows и Linux\n- Добавленны отзывы"
 }
