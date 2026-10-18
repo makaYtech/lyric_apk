@@ -1,10 +1,10 @@
 {
   "release": {
-    "version": "1.2.1",
-    "changelog": "Исправления/Нововведения:\n\n- Добавлен переключатель на вкладку «Расписание»\n- Исправленно переключение темы",
-    "size_bytes": 63875525,
-    "sha256": "f099438384e6a10f4ce6eb06759e3ce2b1f860999c68614a428b1b89b6ce2813",
-    "apk_name": "lyric-1.2.1-release.apk"
+    "version": "1.2.2",
+    "changelog": "Исправления и нововведения:\n- Добавлена поддержка Windows и Linux\n- Добавленны отзывы",
+    "size_bytes": 64495105,
+    "sha256": "56a5e66b8dd80d90248f3f0c01e7d2bf4c3ac27664d504c44889d649f0c206d3",
+    "apk_name": "lyric-1.2.2-release.apk"
   },
   "beta": {
     "version": "1.1.7",
