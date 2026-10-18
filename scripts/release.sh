@@ -10,6 +10,7 @@
 #   - gh (GitHub CLI), авторизованный: gh auth login
 #   - flutter в PATH
 #   - jq для редактирования JSON
+#   - sha256sum
 #
 # Что делает:
 #   1. Читает version из pubspec.yaml основного проекта.
@@ -17,18 +18,43 @@
 #   3. Считает SHA-256 и размер.
 #   4. Обновляет docs/update.json в этом репозитории.
 #   5. Коммитит и пушит update.json.
-#   6. Создаёт GitHub Release с тегом v<version> и загружает APK.
+#   6. Копирует APK под финальным именем lyric-<version>-<channel>.apk
+#      и загружает его в GitHub Release с тегом v<version>.
+#      Имя ассета на GitHub точно совпадает с apk_name в update.json.
 
 set -euo pipefail
 
-# ── Настройки (при необходимости поменяй пути) ───────────────────────
-FLUTTER_PROJECT="${FLUTTER_PROJECT:-$HOME/AndroidS/epos_clien}"
-UPDATE_REPO="${UPDATE_REPO:-$HOME/AndroidS/lyric_apk}"
-CHANNEL="${1:-release}"
+# ═══════════════════════════════════════════════════════════════════════
+# НАСТРОЙКИ — заполни три строки под себя, остальное не трогай.
+# ═══════════════════════════════════════════════════════════════════════
+
+# ⚠️ Путь к основному Flutter-проекту (там, где лежит pubspec.yaml).
+FLUTTER_PROJECT="/home/maka/AndroidStudioProjects/epos_clien"
+
+# ⚠️ Путь к ЭТОМУ репозиторию (lyric_apk) на локальной машине.
+UPDATE_REPO="/home/maka/lyric_apk"
+
+# ⚠️ Flavor для сборки. Если не менял в build.gradle.kts — оставь "prod".
 FLAVOR="prod"
+
+# ═══════════════════════════════════════════════════════════════════════
+# ДАЛЬШЕ НИЧЕГО МЕНЯТЬ НЕ НУЖНО.
+# ═══════════════════════════════════════════════════════════════════════
+
+CHANNEL="${1:-release}"
 
 if [[ "$CHANNEL" != "release" && "$CHANNEL" != "beta" && "$CHANNEL" != "alpha" ]]; then
   echo "Ошибка: неверный канал '$CHANNEL'. Ожидается release|beta|alpha." >&2
+  exit 1
+fi
+
+if [[ "$FLUTTER_PROJECT" == "ВСТАВЬ_ПУТЬ_К_ПРОЕКТУ" ]]; then
+  echo "Ошибка: не заполнен FLUTTER_PROJECT в шапке скрипта." >&2
+  exit 1
+fi
+
+if [[ "$UPDATE_REPO" == "ВСТАВЬ_ПУТЬ_К_РЕПЕ" ]]; then
+  echo "Ошибка: не заполнен UPDATE_REPO в шапке скрипта." >&2
   exit 1
 fi
 
@@ -57,11 +83,31 @@ flutter clean >/dev/null
 flutter pub get >/dev/null
 flutter build apk --release --flavor "$FLAVOR"
 
-APK_PATH="build/app/outputs/flutter-apk/app-${FLAVOR}-release.apk"
-if [[ ! -f "$APK_PATH" ]]; then
-  echo "Ошибка: APK не найден: $APK_PATH" >&2
+# Ищем APK в двух возможных местах — Flutter исторически кладёт
+# результат в разные каталоги в зависимости от версии и флагов сборки.
+CANDIDATES=(
+  "build/app/outputs/flutter-apk/app-${FLAVOR}-release.apk"
+  "build/app/outputs/apk/${FLAVOR}/release/app-${FLAVOR}-release.apk"
+)
+
+APK_PATH=""
+for candidate in "${CANDIDATES[@]}"; do
+  if [[ -f "$candidate" ]]; then
+    APK_PATH="$candidate"
+    break
+  fi
+done
+
+if [[ -z "$APK_PATH" ]]; then
+  echo "Ошибка: APK не найден. Проверял:" >&2
+  for c in "${CANDIDATES[@]}"; do
+    echo "  $c" >&2
+  done
+  echo "Проверь, что сборка прошла успешно и flavor='${FLAVOR}'." >&2
   exit 1
 fi
+
+echo "APK найден: $APK_PATH"
 
 # ── 3. SHA-256 и размер ──────────────────────────────────────────────
 SHA=$(sha256sum "$APK_PATH" | awk '{print $1}')
@@ -77,8 +123,7 @@ CHANGELOG_FILE="/tmp/lyric_changelog.txt"
 if [[ ! -f "$CHANGELOG_FILE" ]]; then
   echo "Внимание: $CHANGELOG_FILE не найден." >&2
   echo "Создай файл с описанием изменений и запусти снова." >&2
-  echo "(Будет создан пустой — для теста)" >&2
-  echo "Релиз v${VERSION}" > "$CHANGELOG_FILE"
+  exit 1
 fi
 CHANGELOG=$(cat "$CHANGELOG_FILE")
 
@@ -115,18 +160,39 @@ else
   git push origin main
 fi
 
-# ── 7. GitHub Release ────────────────────────────────────────────────
+# ── 7. Копируем APK под финальным именем ─────────────────────────────
+# gh release upload понимает file#label только как метку, а не как
+# переименование. Поэтому физически копируем файл под нужным именем
+# во временную папку и заливаем уже его.
+TMP_APK="$(mktemp -d)/${APK_NAME}"
+cp "${FLUTTER_PROJECT}/${APK_PATH}" "$TMP_APK"
+
+echo "Копия APK: $TMP_APK"
+
+# ── 8. GitHub Release ────────────────────────────────────────────────
 TAG="v${VERSION}"
 REPO_SLUG=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 
 if gh release view "$TAG" >/dev/null 2>&1; then
-  echo "Релиз ${TAG} уже существует. Загружаю APK в него..."
-  gh release upload "$TAG" "${FLUTTER_PROJECT}/${APK_PATH}#${APK_NAME}" --clobber
+  echo "Релиз ${TAG} уже существует."
+
+  # Сначала удаляем старые ассеты с тем же именем, если есть.
+  # (--clobber перезаписывает, но если имя изменилось, старый asset
+  # останется висеть — удаляем явно.)
+  OLD_ASSETS=$(gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null || true)
+  for asset in $OLD_ASSETS; do
+    if [[ "$asset" != "$APK_NAME" ]]; then
+      echo "Удаляю старый asset: $asset"
+      gh release delete-asset "$TAG" "$asset" --yes || true
+    fi
+  done
+
+  gh release upload "$TAG" "$TMP_APK" --clobber
 else
   gh release create "$TAG" \
     --title "v${VERSION} (${CHANNEL})" \
     --notes "$CHANGELOG" \
-    "${FLUTTER_PROJECT}/${APK_PATH}#${APK_NAME}"
+    "$TMP_APK"
 fi
 
 echo ""
